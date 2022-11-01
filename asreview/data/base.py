@@ -458,7 +458,7 @@ class ASReviewData():
 
         return result_df
 
-    def duplicated(self, pid='doi'):
+    def duplicated(self, pid='doi', pid_only=True):
         """Return boolean Series denoting duplicate rows.
 
         Identify duplicates based on titles and abstracts and if available,
@@ -486,25 +486,23 @@ class ASReviewData():
             # save boolean series for duplicates based on persistent identifiers
             s_dups_pid = ((s_pid.duplicated()) & (s_pid.notnull()))
         else:
-            s_dups_pid = None
+            s_dups = pd.Series(False, index=range(len(self.df)))
 
-        # get the texts, clean them and replace empty strings with None
-        s = pd.Series(self.texts) \
-            .str.replace("[^A-Za-z0-9]", "", regex=True) \
-            .str.lower().str.strip().replace("", None)
+        if not pid_only:
+            # get the texts, clean them and replace empty strings with None
+            s = pd.Series(self.texts) \
+                .str.replace("[^A-Za-z0-9]", "", regex=True) \
+                .str.lower().str.strip().replace("", None)
 
-        # save boolean series for duplicates based on titles/abstracts
-        s_dups_text = ((s.duplicated()) & (s.notnull()))
+            # save boolean series for duplicates based on titles/abstracts
+            s_dups_text = ((s.duplicated()) & (s.notnull()))
 
-        # final boolean series for all duplicates
-        if s_dups_pid is not None:
-            s_dups = s_dups_pid | s_dups_text
-        else:
-            s_dups = s_dups_text
+            # final boolean series for all duplicates
+            s_dups = s_dups | s_dups_text
 
         return s_dups
 
-    def drop_duplicates(self, pid='doi', inplace=False, reset_index=True):
+    def drop_duplicates(self, pid='doi', inplace=False, reset_index=True, pid_only=True):
         """Drop duplicate records.
 
         Drop duplicates based on titles and abstracts and if available,
@@ -525,7 +523,7 @@ class ASReviewData():
         pandas.DataFrame or None
             DataFrame with duplicates removed or None if inplace=True
         """
-        df = self.df[~self.duplicated(pid)]
+        df = self.df[~self.duplicated(pid, pid_only=pid_only)]
 
         if reset_index:
             df = df.reset_index(drop=True)
@@ -533,3 +531,4 @@ class ASReviewData():
             self.df = df
             return
         return df
+
