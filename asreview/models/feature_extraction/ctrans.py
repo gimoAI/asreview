@@ -14,24 +14,15 @@
 
 import numpy as np
 
-try:
-    from transformers import BigBirdTokenizer, \
-        BigBirdForSequenceClassification, Trainer,\
-        TrainingArguments, EvalPrediction, AutoTokenizer
-    # from sentence_transformers.SentenceTransformer import SentenceTransformer  # noqa  # NOQA
-except ImportError:
-    ST_AVAILABLE = False
-else:
-    ST_AVAILABLE = True
+from transformers import FeatureExtractionPipeline
+
+from transformers import BigBirdTokenizer, \
+    BigBirdModel, BigBirdForSequenceClassification, Trainer,\
+    TrainingArguments, EvalPrediction, AutoTokenizer
+# from sentence_transformers.SentenceTransformer import SentenceTransformer  # noqa  # NOQA
 
 from asreview.models.feature_extraction.base import BaseFeatureExtraction
 
-
-def _check_st():
-    if not ST_AVAILABLE:
-        raise ImportError(
-            "Install transformers package"
-            " to use custom transformer.")
 
 
 class TRANSF(BaseFeatureExtraction):
@@ -69,14 +60,18 @@ class TRANSF(BaseFeatureExtraction):
     name = "transf"
     label = "Custom Transformer"
 
+    import torch
+    print(torch.cuda.is_available())
+
     def __init__(self, *args, transformer_model='google/bigbird-roberta-base', **kwargs):
         super(TRANSF, self).__init__(*args, **kwargs)
         self.transformer_model = transformer_model
 
     def transform(self, texts):
+        tokenizer = BigBirdTokenizer.from_pretrained(self.transformer_model)
+        model = BigBirdModel.from_pretrained(self.transformer_model)
 
-        _check_st()
-
-        model = BigBirdForSequenceClassification(self.transformer_model, return_dict=True)
-        X = np.array(model.encode(texts))
+        feature_extractor = FeatureExtractionPipeline(model=model, tokenizer=tokenizer, device='cuda:0')
+        X = np.array(feature_extractor(texts.tolist()))
+        # X = np.array(model.encode(texts))
         return X
