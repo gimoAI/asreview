@@ -77,7 +77,6 @@ class TRANSF(BaseFeatureExtraction):
 
         _check_st()
 
-        model = BigBirdForSequenceClassification(self.transformer_model, gradient_checkpointing=False,
-                                                 num_labels=2, return_dict=True)
+        model = BigBirdForSequenceClassification(self.transformer_model, return_dict=True)
         X = np.array(model.encode(texts))
         return X

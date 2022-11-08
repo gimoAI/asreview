@@ -173,6 +173,7 @@ setup(
             'embedding-lstm = asreview.models.feature_extraction:EmbeddingLSTM',
             'sbert = asreview.models.feature_extraction:SBERT',
             'tfidf = asreview.models.feature_extraction:Tfidf',
+            'transf = asreview.models.feature_extraction:TRANSF'
         ],
         'asreview.models.balance': [
             "simple = asreview.models.balance:SimpleBalance",
