@@ -60,9 +60,6 @@ class TRANSF(BaseFeatureExtraction):
     name = "transf"
     label = "Custom Transformer"
 
-    import torch
-    print(torch.cuda.is_available())
-
     def __init__(self, *args, transformer_model='google/bigbird-roberta-base', **kwargs):
         super(TRANSF, self).__init__(*args, **kwargs)
         self.transformer_model = transformer_model
