@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import torch
 
 from transformers import FeatureExtractionPipeline
 from transformers import LongformerTokenizer, LongformerModel
@@ -32,7 +33,22 @@ class LongF(BaseFeatureExtraction):
         tokenizer = LongformerTokenizer.from_pretrained(self.transformer_model)
         model = LongformerModel.from_pretrained(self.transformer_model)
 
-        feature_extractor = FeatureExtractionPipeline(model=model, tokenizer=tokenizer, device='cuda:0')
-        X = np.array(feature_extractor(texts.tolist()))
+        encoded_input = tokenizer(texts.tolist(), padding="longest", truncation=True, return_tensors='pt')
+
+        # Compute token embedddings:
+        with torch.no_grad():
+            model_output = model(**encoded_input)
+
+        # Perform pooling. In this case, mean pooling.
+        X = np.array(self.mean_pooling(model_output, encoded_input['attention_mask']))
+
+        # feature_extractor = FeatureExtractionPipeline(model=model, tokenizer=tokenizer, device='cuda:0')
+        # X = np.array(feature_extractor(texts.tolist()), dtype=object)
         # X = np.array(model.encode(texts))
         return X
+
+    def mean_pooling(self, model_output, attention_mask):
+        # https://huggingface.co/sentence-transformers/paraphrase-xlm-r-multilingual-v1
+        token_embeddings = model_output[0]  # First element of model_output contains all token embeddings
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+        return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
