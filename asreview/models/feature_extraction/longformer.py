@@ -14,6 +14,7 @@
 
 import numpy as np
 import torch
+import math
 
 from transformers import FeatureExtractionPipeline
 from transformers import LongformerTokenizer, LongformerModel
@@ -30,17 +31,35 @@ class LongF(BaseFeatureExtraction):
         self.transformer_model = transformer_model
 
     def transform(self, texts):
+        device = "cuda:0"
+        torch.cuda.empty_cache()
         tokenizer = LongformerTokenizer.from_pretrained(self.transformer_model)
         model = LongformerModel.from_pretrained(self.transformer_model)
+        X = []
+        batch_size=8
 
-        encoded_input = tokenizer(texts.tolist(), padding="longest", truncation=True, return_tensors='pt')
+        for x in range(int(len(texts)/batch_size)+1):
+            x = x*batch_size
+            y = x+batch_size
+            if y > len(texts):
+                y = len(texts)
+            print("test: ", x, y)
+            batch = texts[x:y]
+            encoded_input = tokenizer(batch.tolist(), padding="longest", truncation=True, return_tensors='pt').to(device)
+            model = model.to(device)
 
-        # Compute token embedddings:
-        with torch.no_grad():
-            model_output = model(**encoded_input)
+            # Compute token embedddings:
+            with torch.no_grad():
+                model_output = model(**encoded_input)
 
-        # Perform pooling. In this case, mean pooling.
-        X = np.array(self.mean_pooling(model_output, encoded_input['attention_mask']))
+            # Some classifiers cannot handle negative features
+            # model_output -= model_output.min(1, keepdim=True)[0]
+            # model_output /= model_output.max(1, keepdim=True)[0]
+
+            # Perform pooling. In this case, mean pooling.
+            X = X + self.mean_pooling(model_output, encoded_input['attention_mask']).tolist()
+
+        X = np.array(X)
 
         # feature_extractor = FeatureExtractionPipeline(model=model, tokenizer=tokenizer, device='cuda:0')
         # X = np.array(feature_extractor(texts.tolist()), dtype=object)
