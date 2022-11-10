@@ -31,7 +31,7 @@ class BigB(BaseFeatureExtraction):
                 y = len(texts)
             print("test: ", x, y)
             batch = texts[x:y]
-            encoded_input = tokenizer(batch.tolist(), return_tensors='pt').to(device)
+            encoded_input = tokenizer(batch.tolist(), padding='longest', truncation=True, return_tensors='pt').to(device)
             model = model.to(device)
 
             # Compute token embedddings:
