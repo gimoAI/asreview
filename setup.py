@@ -174,7 +174,8 @@ setup(
             'sbert = asreview.models.feature_extraction:SBERT',
             'tfidf = asreview.models.feature_extraction:Tfidf',
             'transf = asreview.models.feature_extraction:TRANSF',
-            'longformer= asreview.models.feature_extraction:LongF'
+            'longformer = asreview.models.feature_extraction:LongF',
+            'bigbird = asreview.models.feature_extraction:BigB'
         ],
         'asreview.models.balance': [
             "simple = asreview.models.balance:SimpleBalance",

@@ -22,6 +22,7 @@ from asreview.models.feature_extraction.utils import get_feature_model
 from asreview.models.feature_extraction.utils import list_feature_extraction
 from asreview.models.feature_extraction.ctrans import TRANSF
 from asreview.models.feature_extraction.longformer import LongF
+from asreview.models.feature_extraction.bigbird import BigB
 
 """Feature extraction converts texts into features.
 
