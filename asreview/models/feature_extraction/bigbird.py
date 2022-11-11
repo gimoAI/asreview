@@ -2,18 +2,18 @@ import numpy as np
 import torch
 import math
 
-from transformers import FeatureExtractionPipeline
+from tqdm import tqdm
 from transformers import BigBirdModel, BigBirdTokenizer
 
 from asreview.models.feature_extraction.base import BaseFeatureExtraction
 
 
-class BigB(BaseFeatureExtraction):
+class Bigbird(BaseFeatureExtraction):
     name = "bigbird"
     label = "bigbird"
 
     def __init__(self, *args, transformer_model="google/bigbird-roberta-large", **kwargs):
-        super(BigB, self).__init__(*args, **kwargs)
+        super(Bigbird, self).__init__(*args, **kwargs)
         self.transformer_model = transformer_model
 
     def transform(self, texts):
@@ -22,14 +22,14 @@ class BigB(BaseFeatureExtraction):
         tokenizer = BigBirdTokenizer.from_pretrained(self.transformer_model)
         model = BigBirdModel.from_pretrained(self.transformer_model)
         X = []
-        batch_size=8
+        batch_size = 16
 
-        for x in range(int(len(texts)/batch_size)+1):
+        print("Longformer feature extraction progress: ")
+        for x in tqdm(range(math.ceil(len(texts)/batch_size))):
             x = x*batch_size
             y = x+batch_size
             if y > len(texts):
                 y = len(texts)
-            print("test: ", x, y)
             batch = texts[x:y]
             encoded_input = tokenizer(batch.tolist(), padding='longest', truncation=True, return_tensors='pt').to(device)
             model = model.to(device)
@@ -38,18 +38,10 @@ class BigB(BaseFeatureExtraction):
             with torch.no_grad():
                 model_output = model(**encoded_input)
 
-            # Some classifiers cannot handle negative features
-            # model_output -= model_output.min(1, keepdim=True)[0]
-            # model_output /= model_output.max(1, keepdim=True)[0]
-
             # Perform pooling. In this case, mean pooling.
             X = X + self.mean_pooling(model_output, encoded_input['attention_mask']).tolist()
 
         X = np.array(X)
-
-        # feature_extractor = FeatureExtractionPipeline(model=model, tokenizer=tokenizer, device='cuda:0')
-        # X = np.array(feature_extractor(texts.tolist()), dtype=object)
-        # X = np.array(model.encode(texts))
         return X
 
     def mean_pooling(self, model_output, attention_mask):

@@ -173,9 +173,8 @@ setup(
             'embedding-lstm = asreview.models.feature_extraction:EmbeddingLSTM',
             'sbert = asreview.models.feature_extraction:SBERT',
             'tfidf = asreview.models.feature_extraction:Tfidf',
-            'transf = asreview.models.feature_extraction:TRANSF',
-            'longformer = asreview.models.feature_extraction:LongF',
-            'bigbird = asreview.models.feature_extraction:BigB'
+            'longformer = asreview.models.feature_extraction:Longformer',
+            'bigbird = asreview.models.feature_extraction:Bigbird'
         ],
         'asreview.models.balance': [
             "simple = asreview.models.balance:SimpleBalance",
