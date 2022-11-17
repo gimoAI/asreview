@@ -37,7 +37,7 @@ class Longformer(BaseFeatureExtraction):
         tokenizer = LongformerTokenizer.from_pretrained(self.transformer_model)
         model = LongformerModel.from_pretrained(self.transformer_model)
         X = []
-        batch_size = 16
+        batch_size = 8
 
         print("Longformer feature extraction progress: ")
         for x in tqdm(range(math.ceil(len(texts) / batch_size))):

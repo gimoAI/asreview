@@ -32,12 +32,13 @@ class Bigbird(BaseFeatureExtraction):
         self.transformer_model = transformer_model
 
     def transform(self, texts):
+        # nog code toevoegen: if cuda is available.
         device = "cuda:0"
         torch.cuda.empty_cache()
         tokenizer = BigBirdTokenizer.from_pretrained(self.transformer_model)
         model = BigBirdModel.from_pretrained(self.transformer_model)
         X = []
-        batch_size = 16
+        batch_size = 2
 
         print("Longformer feature extraction progress: ")
         for x in tqdm(range(math.ceil(len(texts) / batch_size))):
